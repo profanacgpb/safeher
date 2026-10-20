@@ -1,6 +1,3 @@
-import { Capacitor } from '@capacitor/core'
-import { Geolocation } from '@capacitor/geolocation'
-
 export function getDemoLocation() {
   return {
     latitude: -5.7945,
@@ -10,24 +7,6 @@ export function getDemoLocation() {
 }
 
 export async function requestLocation() {
-  if (Capacitor.isNativePlatform()) {
-    const permission = await Geolocation.requestPermissions()
-    if (permission.location !== 'granted' && permission.coarseLocation !== 'granted') {
-      throw new Error('Permita o acesso à localização nas configurações do aplicativo e tente novamente.')
-    }
-
-    const position = await Geolocation.getCurrentPosition({
-      enableHighAccuracy: true,
-      timeout: 15000,
-    })
-
-    return {
-      latitude: position.coords.latitude,
-      longitude: position.coords.longitude,
-      timestamp: position.timestamp,
-    }
-  }
-
   if (!navigator.geolocation) {
     throw new Error('Localização não disponível neste navegador.')
   }

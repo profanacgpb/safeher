@@ -1,40 +1,63 @@
-<<<<<<< HEAD
 # SafeHer
 
-Aplicativo web responsivo e aplicativo Android para organizar uma rede de apoio, registrar sessões SOS e compartilhar a localização. O SafeHer é complementar e não substitui os serviços oficiais de emergência.
+Site responsivo com abordagem mobile-first para organizar contatos de confiança, acessar canais de emergência, consultar conteúdos educativos e compartilhar a localização em uma situação de risco.
+
+O projeto é uma aplicação web: não gera APK. O frontend usa React, Vite e JavaScript; autenticação e dados são fornecidos pelo Supabase (PostgreSQL). O deploy está preparado para a Vercel.
+
+> O SafeHer é uma ferramenta complementar e não substitui os serviços oficiais de emergência. O SOS registra uma sessão e obtém a localização quando acionado; o compartilhamento é iniciado pela própria usuária. O site não envia alertas automaticamente nem acompanha localização em segundo plano.
+
+## Funcionalidades
+
+- Cadastro, login e sessão de usuária com Supabase Auth.
+- Cadastro e gerenciamento de até cinco contatos de confiança.
+- Acionamento do SOS com localização do navegador, registro e histórico no Supabase.
+- Compartilhamento pelo recurso nativo do navegador ou cópia do link, quando disponível.
+- Atalhos para os canais 190 e 180, conteúdos educativos e modo demonstração.
+
+A geolocalização em produção requer HTTPS e permissão da usuária no navegador. O registro e a consulta de dados precisam de conexão com o Supabase.
 
 ## Requisitos
 
-- Node.js 20.19+ ou 22.12+
-- Projeto Supabase para autenticação e dados online
-- Android Studio e Android SDK para compilar o APK
-- Java JDK compatível com a versão do Android Gradle Plugin instalada pelo Capacitor
+- Node.js `^20.19.0` ou `>=22.12.0` (requisito do Vite instalado).
+- npm.
+- Um projeto Supabase para habilitar autenticação, contatos e histórico online.
 
-## Configuração do Supabase
+## Executar localmente
 
-1. Crie um projeto no Supabase.
-2. No SQL Editor do projeto, execute `supabase/schema.sql` e depois `supabase/policies.sql`.
-3. Copie `.env.example` para `.env` e preencha:
-
-   ```dotenv
-   VITE_SUPABASE_URL=https://seu-projeto.supabase.co
-   VITE_SUPABASE_ANON_KEY=sua-chave-publica-anon
-   ```
-
-   Use somente a chave pública anon/publishable no cliente. Nunca coloque a `service_role` ou outra chave privilegiada no app.
-4. Configure confirmação de e-mail e URLs de redirecionamento em **Authentication > URL Configuration** no Supabase.
-5. A autenticação e o banco são protegidos pelo Supabase; os arquivos SQL habilitam RLS e restringem os dados à conta autenticada.
-
-Sem as variáveis do Supabase, o projeto ainda pode ser compilado, mas login, contatos e histórico não estarão disponíveis.
-
-## Executar e publicar na web
+Instale as dependências:
 
 ```bash
-npm install
+npm ci
+```
+
+Crie um arquivo `.env.local` na raiz a partir de `.env.example` e configure as credenciais públicas do seu projeto Supabase:
+
+```dotenv
+VITE_SUPABASE_URL=https://seu-projeto.supabase.co
+VITE_SUPABASE_ANON_KEY=sua-chave-publica-anon
+```
+
+Inicie o servidor de desenvolvimento:
+
+```bash
 npm run dev
 ```
 
-Para validar e gerar os arquivos estáticos:
+Sem as variáveis do Supabase, o site pode ser compilado, mas o login, os contatos e o histórico não funcionarão.
+
+## Configurar Supabase
+
+1. Crie um projeto no Supabase.
+2. No **SQL Editor**, execute `supabase/schema.sql` e, em seguida, `supabase/policies.sql`.
+3. Copie a URL do projeto e a chave pública anon/publishable para `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`.
+4. Em **Authentication > URL Configuration**, configure a URL local de desenvolvimento e o domínio de produção conforme necessário.
+5. Ajuste a confirmação de e-mail conforme a política de autenticação desejada para o projeto.
+
+O schema cria as tabelas PostgreSQL necessárias, e as políticas habilitam Row Level Security (RLS) para restringir contatos e sessões SOS à conta autenticada. Conteúdos ativos podem ser lidos publicamente.
+
+As variáveis `VITE_*` são incluídas no bundle do navegador: utilize somente a chave pública anon/publishable. **Nunca exponha `service_role`, senhas ou qualquer segredo privilegiado no frontend ou no repositório.** O `.gitignore` exclui `.env.local` e arquivos de ambiente para evitar que credenciais locais sejam versionadas.
+
+## Verificar e compilar
 
 ```bash
 npm run lint
@@ -42,36 +65,23 @@ npm run build
 npm run preview
 ```
 
-O diretório de publicação é `dist`. Para publicar na Vercel:
+O comando `npm run build` gera os arquivos de produção em `dist`. `npm run preview` serve localmente essa versão compilada.
 
-1. Importe o repositório na Vercel.
-2. Use `npm run build` como comando de build e `dist` como diretório de saída.
-3. Cadastre `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` nas variáveis de ambiente do projeto, para cada ambiente usado.
-4. Faça o deploy e inclua o domínio público em **Authentication > URL Configuration** no Supabase.
+## Deploy na Vercel
 
-O arquivo `vercel.json` mantém as rotas da aplicação funcionando ao atualizar ou abrir uma URL interna diretamente. Para outro provedor, configure o fallback de rotas SPA para `index.html`.
+1. Importe este repositório na Vercel e selecione a raiz do projeto.
+2. Configure o comando de build como `npm run build` e o diretório de saída como `dist` (ou deixe a Vercel detectar o preset Vite).
+3. Cadastre `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` em **Settings > Environment Variables** para os ambientes desejados.
+4. Faça o deploy ou um novo redeploy após configurar as variáveis.
+5. Adicione o domínio publicado à configuração de URLs permitidas em **Authentication > URL Configuration** no Supabase.
 
-## Gerar o APK Android
+O arquivo `vercel.json` encaminha as rotas da aplicação para `index.html`, permitindo abrir e atualizar rotas internas do React Router diretamente.
 
-As variáveis do Supabase precisam estar configuradas antes do build; os valores públicos são incluídos no app cliente.
+## Scripts disponíveis
 
-```bash
-npm install
-npx cap add android
-npm run cap:sync
-npm run android
-```
-
-No Android Studio, aguarde a sincronização do Gradle e use **Build > Build Bundle(s) / APK(s) > Build APK(s)**. O APK de depuração costuma ser gerado em `android/app/build/outputs/apk/debug/app-debug.apk`. Para distribuir publicamente, gere uma versão assinada em **Build > Generate Signed Bundle / APK** e guarde a chave de assinatura em local seguro, fora do repositório.
-
-Após alterações no front-end, execute `npm run cap:sync` novamente antes de recompilar o Android. O app solicita permissão de localização no dispositivo quando o SOS é iniciado.
-
-## Limitações importantes
-
-- O link de localização só é enviado quando a usuária escolhe um meio de compartilhamento; o app não envia alertas automaticamente nem monitora a localização em segundo plano.
-- A versão web precisa ser servida por HTTPS para acessar a geolocalização nos navegadores.
-- O SOS depende de conectividade com o Supabase para registrar e encerrar sessões.
-- Em uma emergência, priorize os serviços oficiais, como 190 e 180.
-=======
-# safeher
->>>>>>> 9779d921116febdc5225eb44ec40119721b740b2
+| Comando | Descrição |
+| --- | --- |
+| `npm run dev` | Inicia o servidor de desenvolvimento Vite. |
+| `npm run lint` | Executa o Oxlint. |
+| `npm run build` | Gera o site de produção em `dist`. |
+| `npm run preview` | Pré-visualiza localmente o build de produção. |

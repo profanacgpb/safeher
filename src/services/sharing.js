@@ -1,13 +1,5 @@
-import { Capacitor } from '@capacitor/core'
-import { Share } from '@capacitor/share'
-
 export async function shareLocation(url, title = 'Minha localização') {
   const text = 'Compartilhe este link com sua rede de apoio.'
-
-  if (Capacitor.isNativePlatform()) {
-    await Share.share({ title, text, url, dialogTitle: title })
-    return { shared: true, message: 'Compartilhamento aberto no seu dispositivo.' }
-  }
 
   if (navigator.share) {
     try {
