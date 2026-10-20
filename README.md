@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # SafeHer
 
 Aplicativo web responsivo e aplicativo Android para organizar uma rede de apoio, registrar sessões SOS e compartilhar a localização. O SafeHer é complementar e não substitui os serviços oficiais de emergência.
@@ -71,3 +72,6 @@ Após alterações no front-end, execute `npm run cap:sync` novamente antes de r
 - A versão web precisa ser servida por HTTPS para acessar a geolocalização nos navegadores.
 - O SOS depende de conectividade com o Supabase para registrar e encerrar sessões.
 - Em uma emergência, priorize os serviços oficiais, como 190 e 180.
+=======
+# safeher
+>>>>>>> 9779d921116febdc5225eb44ec40119721b740b2
