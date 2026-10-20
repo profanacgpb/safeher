@@ -1,19 +1,25 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getCurrentUser } from '../services/auth'
 
-export default function Profile({ onLogout }) {
+export default function Profile({ user, onLogout }) {
   const navigate = useNavigate()
-  const user = getCurrentUser()
+  const [error, setError] = useState('')
 
   const handleLogout = async () => {
-    await onLogout()
-    navigate('/login')
+    setError('')
+    try {
+      await onLogout()
+      navigate('/login')
+    } catch (logoutError) {
+      setError(logoutError.message || 'Não foi possível sair da conta.')
+    }
   }
 
   return (
     <main className="page-shell">
       <section className="content-section profile-section">
         <h2>Meu perfil</h2>
+        {error ? <p className="form-error">{error}</p> : null}
         <div className="profile-card">
           <p><strong>Nome</strong></p>
           <p>{user?.nome || 'Usuária Demo'}</p>

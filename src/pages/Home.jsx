@@ -1,10 +1,18 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import SosButton from '../components/SosButton'
 import { getContacts } from '../services/contacts'
-import { useMemo } from 'react'
+import { useEffect, useState } from 'react'
 
-export default function Home({ user, onSos }) {
-  const contacts = useMemo(() => getContacts(), [])
+export default function Home({ user }) {
+  const navigate = useNavigate()
+  const [contacts, setContacts] = useState([])
+  const [contactsError, setContactsError] = useState('')
+
+  useEffect(() => {
+    getContacts()
+      .then(setContacts)
+      .catch((error) => setContactsError(error.message))
+  }, [])
 
   return (
     <main className="page-shell">
@@ -16,7 +24,7 @@ export default function Home({ user, onSos }) {
         </div>
 
         <div className="sos-panel">
-          <SosButton onClick={onSos} />
+          <SosButton onClick={() => navigate('/app/sos')} />
         </div>
 
         <div className="feature-box">
@@ -24,6 +32,7 @@ export default function Home({ user, onSos }) {
             <span className="feature-dot" />
             <strong>Rede de apoio</strong>
           </div>
+          {contactsError ? <p className="form-error">{contactsError}</p> : null}
           <p>{contacts.length > 0 ? `${contacts.length} contato(s) cadastrado(s)` : 'Cadastre contatos de confiança'}</p>
         </div>
 

@@ -1,35 +1,55 @@
-const CONTACTS_KEY = 'safeher_contacts'
+import { requireSupabase } from './supabase'
 
-export function getContacts() {
-  try {
-    const stored = JSON.parse(localStorage.getItem(CONTACTS_KEY) || '[]')
-    return Array.isArray(stored) ? stored : []
-  } catch {
-    return []
-  }
+const contactFields = 'id, nome, telefone, relacao, created_at'
+
+async function getAuthenticatedUserId(client) {
+  const { data, error } = await client.auth.getUser()
+
+  if (error) throw error
+  if (!data.user) throw new Error('Faça login para acessar seus contatos.')
+  return data.user.id
 }
 
-export function saveContacts(contacts) {
-  localStorage.setItem(CONTACTS_KEY, JSON.stringify(contacts))
+export async function getContacts() {
+  const client = requireSupabase()
+  const { data, error } = await client
+    .from('contatos')
+    .select(contactFields)
+    .order('created_at', { ascending: true })
+
+  if (error) throw error
+  return data
 }
 
-export function addContact(contact) {
-  const contacts = getContacts()
-  const next = [...contacts, { ...contact, id: crypto.randomUUID() }]
-  saveContacts(next)
-  return next
+export async function addContact(contact) {
+  const client = requireSupabase()
+  const usuario_id = await getAuthenticatedUserId(client)
+  const { data, error } = await client
+    .from('contatos')
+    .insert({ ...contact, usuario_id })
+    .select(contactFields)
+    .single()
+
+  if (error) throw error
+  return data
 }
 
-export function updateContact(id, payload) {
-  const contacts = getContacts().map((contact) =>
-    contact.id === id ? { ...contact, ...payload } : contact,
-  )
-  saveContacts(contacts)
-  return contacts
+export async function updateContact(id, payload) {
+  const client = requireSupabase()
+  const { data, error } = await client
+    .from('contatos')
+    .update(payload)
+    .eq('id', id)
+    .select(contactFields)
+    .single()
+
+  if (error) throw error
+  return data
 }
 
-export function removeContact(id) {
-  const contacts = getContacts().filter((contact) => contact.id !== id)
-  saveContacts(contacts)
-  return contacts
+export async function removeContact(id) {
+  const client = requireSupabase()
+  const { error } = await client.from('contatos').delete().eq('id', id)
+
+  if (error) throw error
 }

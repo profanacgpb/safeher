@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { registerUser } from '../services/auth'
 
-export default function Register({ onAuth }) {
+export default function Register() {
   const navigate = useNavigate()
   const [form, setForm] = useState({ nome: '', email: '', password: '' })
   const [error, setError] = useState('')
@@ -19,8 +19,7 @@ export default function Register({ onAuth }) {
     setError('')
 
     try {
-      const user = await registerUser(form)
-      onAuth?.(user)
+      await registerUser(form)
       navigate('/onboarding')
     } catch (registerError) {
       setError(registerError.message)

@@ -1,66 +1,45 @@
-const SESSION_KEY = 'safeher_session'
-const USERS_KEY = 'safeher_users'
+import { requireSupabase } from './supabase'
 
-export function getStoredSession() {
-  try {
-    const session = localStorage.getItem(SESSION_KEY)
-    return session ? JSON.parse(session) : null
-  } catch {
-    return null
+function toAppUser(user) {
+  if (!user) return null
+
+  return {
+    ...user,
+    nome: user.user_metadata?.nome || '',
   }
 }
 
-export function getCurrentUser() {
-  const session = getStoredSession()
-  if (!session) return null
+export async function getCurrentUser() {
+  const client = requireSupabase()
+  const { data, error } = await client.auth.getSession()
 
-  const users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]')
-  return users.find((user) => user.id === session.userId) || null
+  if (error) throw error
+  return toAppUser(data.session?.user)
 }
 
 export async function loginUser({ email, password }) {
-  const users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]')
-  const user = users.find(
-    (item) => item.email === email && item.password === password,
-  )
+  const client = requireSupabase()
+  const { data, error } = await client.auth.signInWithPassword({ email, password })
 
-  if (!user) {
-    throw new Error('E-mail ou senha inválidos.')
-  }
-
-  localStorage.setItem(
-    SESSION_KEY,
-    JSON.stringify({ userId: user.id, email: user.email }),
-  )
-  return user
+  if (error) throw error
+  return toAppUser(data.user)
 }
 
 export async function registerUser({ nome, email, password }) {
-  const users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]')
-  const existing = users.find((user) => user.email === email)
-
-  if (existing) {
-    throw new Error('Este e-mail já está cadastrado.')
-  }
-
-  const user = {
-    id: crypto.randomUUID(),
-    nome,
+  const client = requireSupabase()
+  const { data, error } = await client.auth.signUp({
     email,
     password,
-    created_at: new Date().toISOString(),
-  }
+    options: { data: { nome } },
+  })
 
-  users.push(user)
-  localStorage.setItem(USERS_KEY, JSON.stringify(users))
-  localStorage.setItem(
-    SESSION_KEY,
-    JSON.stringify({ userId: user.id, email: user.email }),
-  )
-  return user
+  if (error) throw error
+  return toAppUser(data.user)
 }
 
 export async function logoutUser() {
-  localStorage.removeItem(SESSION_KEY)
-  return true
+  const client = requireSupabase()
+  const { error } = await client.auth.signOut()
+
+  if (error) throw error
 }

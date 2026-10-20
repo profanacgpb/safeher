@@ -1,41 +1,56 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { getContacts, addContact, updateContact, removeContact } from '../services/contacts'
 
 const emptyForm = { nome: '', telefone: '', relacao: '' }
 
 export default function Contacts() {
-  const [contacts, setContacts] = useState(() => getContacts())
+  const [contacts, setContacts] = useState([])
   const [form, setForm] = useState(emptyForm)
   const [editingId, setEditingId] = useState(null)
   const [message, setMessage] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
 
   const limitReached = contacts.length >= 5
+
+  useEffect(() => {
+    getContacts()
+      .then(setContacts)
+      .catch((error) => setMessage(error.message))
+      .finally(() => setLoading(false))
+  }, [])
 
   const handleChange = (event) => {
     const { name, value } = event.target
     setForm((current) => ({ ...current, [name]: value }))
   }
 
-  const refreshContacts = () => setContacts(getContacts())
-
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
+    setMessage('')
 
     if (limitReached && !editingId) {
       setMessage('Você atingiu o limite de 5 contatos.')
       return
     }
 
-    if (editingId) {
-      updateContact(editingId, form)
-      setEditingId(null)
-    } else {
-      addContact(form)
-    }
+    setSaving(true)
+    try {
+      if (editingId) {
+        const updated = await updateContact(editingId, form)
+        setContacts((current) => current.map((contact) => contact.id === updated.id ? updated : contact))
+        setEditingId(null)
+      } else {
+        const created = await addContact(form)
+        setContacts((current) => [...current, created])
+      }
 
-    setForm(emptyForm)
-    setMessage('')
-    refreshContacts()
+      setForm(emptyForm)
+    } catch (error) {
+      setMessage(error.message)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleEdit = (contact) => {
@@ -43,12 +58,17 @@ export default function Contacts() {
     setForm({ nome: contact.nome, telefone: contact.telefone, relacao: contact.relacao })
   }
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     const confirmed = window.confirm('Deseja realmente remover este contato?')
     if (!confirmed) return
 
-    removeContact(id)
-    refreshContacts()
+    setMessage('')
+    try {
+      await removeContact(id)
+      setContacts((current) => current.filter((contact) => contact.id !== id))
+    } catch (error) {
+      setMessage(error.message)
+    }
   }
 
   return (
@@ -69,14 +89,16 @@ export default function Contacts() {
             <input name="relacao" value={form.relacao} onChange={handleChange} required />
           </label>
           {message ? <p className="form-error">{message}</p> : null}
-          <button type="submit" className="primary-button" disabled={limitReached && !editingId}>
-            {editingId ? 'SALVAR ALTERAÇÕES' : '+ ADICIONAR CONTATO'}
+          <button type="submit" className="primary-button" disabled={saving || (limitReached && !editingId)}>
+            {saving ? 'SALVANDO...' : editingId ? 'SALVAR ALTERAÇÕES' : '+ ADICIONAR CONTATO'}
           </button>
         </form>
 
-        {contacts.length === 0 ? (
+        {loading ? <p role="status">Carregando contatos...</p> : null}
+        {!loading && contacts.length === 0 ? (
           <p className="empty-state">Você ainda não cadastrou contatos de confiança.</p>
-        ) : (
+        ) : null}
+        {!loading && contacts.length > 0 ? (
           <div className="contact-list">
             {contacts.map((contact) => (
               <div key={contact.id} className="contact-card">
@@ -94,7 +116,7 @@ export default function Contacts() {
               </div>
             ))}
           </div>
-        )}
+        ) : null}
       </section>
     </main>
   )

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { BrowserRouter, Navigate, Outlet, Route, Routes, Link } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
 import Welcome from './pages/Welcome'
@@ -18,7 +18,7 @@ import Header from './components/Header'
 import BottomNavigation from './components/BottomNavigation'
 import './App.css'
 
-function AppLayout({ user, onLogout }) {
+function AppLayout() {
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
@@ -44,7 +44,7 @@ function AppLayout({ user, onLogout }) {
 }
 
 function App() {
-  const { user, setUser, logout } = useAuth()
+  const { user, setUser, logout, loading } = useAuth()
 
   const handleAuth = (nextUser) => {
     setUser(nextUser)
@@ -55,37 +55,34 @@ function App() {
     setUser(null)
   }
 
-  const appRoutes = useMemo(
-    () => (
+  return (
+    <BrowserRouter>
       <Routes>
         <Route path="/" element={<Welcome />} />
         <Route path="/login" element={<Login onAuth={handleAuth} />} />
-        <Route path="/cadastro" element={<Register onAuth={handleAuth} />} />
+        <Route path="/cadastro" element={<Register />} />
         <Route path="/onboarding" element={<Onboarding />} />
         <Route
           path="/app"
           element={
-            <ProtectedRoute>
-              <AppLayout user={user} onLogout={handleLogout} />
+            <ProtectedRoute user={user} loading={loading}>
+              <AppLayout />
             </ProtectedRoute>
           }
         >
-          <Route index element={<Home user={user} onSos={() => window.location.assign('/app/sos')} />} />
+          <Route index element={<Home user={user} />} />
           <Route path="contatos" element={<Contacts />} />
           <Route path="sos" element={<Sos />} />
           <Route path="historico" element={<History />} />
           <Route path="aprender" element={<Learn />} />
           <Route path="aprender/:id" element={<ContentDetail />} />
-          <Route path="perfil" element={<Profile onLogout={handleLogout} />} />
+          <Route path="perfil" element={<Profile user={user} onLogout={handleLogout} />} />
           <Route path="demo" element={<DemoMode />} />
         </Route>
         <Route path="*" element={<Navigate to={user ? '/app' : '/'} replace />} />
       </Routes>
-    ),
-    [user],
+    </BrowserRouter>
   )
-
-  return <BrowserRouter>{appRoutes}</BrowserRouter>
 }
 
 export default App

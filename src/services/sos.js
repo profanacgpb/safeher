@@ -1,37 +1,48 @@
-const SOS_KEY = 'safeher_sos_sessions'
+import { requireSupabase } from './supabase'
 
-export function getSosHistory() {
-  try {
-    const sessions = JSON.parse(localStorage.getItem(SOS_KEY) || '[]')
-    return Array.isArray(sessions) ? sessions : []
-  } catch {
-    return []
-  }
+const sessionFields = 'id, usuario_id, inicio, fim, latitude, longitude, status, created_at'
+
+async function getAuthenticatedUserId(client) {
+  const { data, error } = await client.auth.getUser()
+
+  if (error) throw error
+  if (!data.user) throw new Error('Faça login para registrar um SOS.')
+  return data.user.id
 }
 
-export function createSosSession({ latitude, longitude, userId = 'demo-user' }) {
-  const now = new Date()
-  const record = {
-    id: crypto.randomUUID(),
-    usuario_id: userId,
-    inicio: now.toISOString(),
-    fim: null,
-    latitude,
-    longitude,
-    status: 'ATIVO',
-    created_at: now.toISOString(),
-  }
+export async function getSosHistory() {
+  const client = requireSupabase()
+  const { data, error } = await client
+    .from('sessoes_sos')
+    .select(sessionFields)
+    .order('inicio', { ascending: false })
 
-  const sessions = getSosHistory()
-  sessions.unshift(record)
-  localStorage.setItem(SOS_KEY, JSON.stringify(sessions))
-  return record
+  if (error) throw error
+  return data
 }
 
-export function closeSosSession(id) {
-  const sessions = getSosHistory().map((session) =>
-    session.id === id ? { ...session, status: 'ENCERRADO', fim: new Date().toISOString() } : session,
-  )
-  localStorage.setItem(SOS_KEY, JSON.stringify(sessions))
-  return sessions
+export async function createSosSession({ latitude, longitude }) {
+  const client = requireSupabase()
+  const usuario_id = await getAuthenticatedUserId(client)
+  const { data, error } = await client
+    .from('sessoes_sos')
+    .insert({ usuario_id, latitude, longitude, status: 'ATIVO' })
+    .select(sessionFields)
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function closeSosSession(id) {
+  const client = requireSupabase()
+  const { data, error } = await client
+    .from('sessoes_sos')
+    .update({ status: 'ENCERRADO', fim: new Date().toISOString() })
+    .eq('id', id)
+    .select(sessionFields)
+    .single()
+
+  if (error) throw error
+  return data
 }
