@@ -1,0 +1,16 @@
+.primary-button:hover,
+.secondary-button:hover,
+.danger-button:hover,
+.sos-button:hover,
+.emergency-button:hover,
+.contact-actions button:hover,
+.menu-button:hover {
+  transform: translateY(-1px);
+}
+
+@media (min-width: 768px) {
+  .brand-mark {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}
