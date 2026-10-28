@@ -37,6 +37,8 @@ VITE_SUPABASE_URL=https://seu-projeto.supabase.co
 VITE_SUPABASE_ANON_KEY=sua-chave-publica-anon
 ```
 
+`VITE_SUPABASE_URL` deve ser a URL base do projeto, sem `/rest/v1`. O app remove esse sufixo automaticamente se ele for informado por engano.
+
 Inicie o servidor de desenvolvimento:
 
 ```bash
