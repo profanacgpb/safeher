@@ -56,7 +56,7 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <Routes>
         <Route path="/" element={<Welcome />} />
         <Route path="/login" element={<Login onAuth={handleAuth} />} />

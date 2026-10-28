@@ -2,7 +2,7 @@
 
 Site responsivo com abordagem mobile-first para organizar contatos de confiança, acessar canais de emergência, consultar conteúdos educativos e compartilhar a localização em uma situação de risco.
 
-O projeto é uma aplicação web: não gera APK. O frontend usa React, Vite e JavaScript; autenticação e dados são fornecidos pelo Supabase (PostgreSQL). O deploy está preparado para a Vercel.
+O projeto é uma aplicação web: não gera APK. O frontend usa React, Vite e JavaScript; autenticação e dados são fornecidos pelo Supabase (PostgreSQL). O deploy está preparado para GitHub Pages e Vercel.
 
 > O SafeHer é uma ferramenta complementar e não substitui os serviços oficiais de emergência. O SOS registra uma sessão e obtém a localização quando acionado; o compartilhamento é iniciado pela própria usuária. O site não envia alertas automaticamente nem acompanha localização em segundo plano.
 
@@ -44,6 +44,17 @@ npm run dev
 ```
 
 Sem as variáveis do Supabase, o site pode ser compilado, mas o login, os contatos e o histórico não funcionarão.
+
+## Deploy no GitHub Pages
+
+O repositório `profanacgpb/safeher` publica o site em `https://profanacgpb.github.io/safeher/`. As rotas internas, incluindo o cadastro, ficam abaixo desse caminho (por exemplo, `/safeher/cadastro`); `https://profanacgpb.github.io/cadastro/` não é o endereço deste projeto.
+
+1. Em **Settings > Secrets and variables > Actions**, crie os secrets de repositório `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` com os valores do projeto Supabase. O workflow exige ambos no build e não imprime seus valores.
+2. Em **Settings > Pages**, selecione **GitHub Actions** como origem de publicação.
+3. Execute o workflow **Deploy to GitHub Pages** manualmente na aba **Actions** ou faça push para `main`.
+4. No Supabase, configure `https://profanacgpb.github.io/safeher/` como URL do site e permita redirecionamentos para as rotas do app em **Authentication > URL Configuration**.
+
+Somente a chave pública `anon`/publishable deve ser usada em `VITE_SUPABASE_ANON_KEY`; nunca coloque a chave `service_role` no frontend ou nos secrets usados pelo build do site.
 
 ## Configurar Supabase
 

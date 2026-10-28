@@ -34,7 +34,10 @@ export async function registerUser({ nome, email, password }) {
   })
 
   if (error) throw error
-  return toAppUser(data.user)
+  return {
+    user: toAppUser(data.user),
+    session: data.session,
+  }
 }
 
 export async function logoutUser() {

@@ -6,6 +6,7 @@ export default function Register() {
   const navigate = useNavigate()
   const [form, setForm] = useState({ nome: '', email: '', password: '' })
   const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
 
   const handleChange = (event) => {
@@ -17,10 +18,15 @@ export default function Register() {
     event.preventDefault()
     setLoading(true)
     setError('')
+    setMessage('')
 
     try {
-      await registerUser(form)
-      navigate('/onboarding')
+      const { session } = await registerUser(form)
+      if (session) {
+        navigate('/onboarding')
+      } else {
+        setMessage('Se o cadastro puder ser concluído, enviaremos um e-mail de confirmação. Verifique sua caixa de entrada e, após confirmar, faça login.')
+      }
     } catch (registerError) {
       setError(registerError.message)
     } finally {
@@ -46,6 +52,7 @@ export default function Register() {
             <input name="password" type="password" value={form.password} onChange={handleChange} required />
           </label>
           {error ? <p className="form-error">{error}</p> : null}
+          {message ? <p className="success-line" role="status">{message}</p> : null}
           <button type="submit" className="primary-button" disabled={loading}>
             {loading ? 'CADASTRANDO...' : 'CRIAR CONTA'}
           </button>
